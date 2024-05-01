@@ -10,15 +10,20 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <header className="App-header">
-          <h1>Credit Transfer System</h1>
-        </header>
         <main className="App-main">
           <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/dashboard/:studentAddress" element={<StudentDashboard />} />
-            <Route path="/enroll" element={<EnrollmentForm />} />
+            <Route path="/" element={
+              <div className="centered-container">
+                <LoginPage />
+              </div>
+            } />
+            <Route path="/register" element={
+              <div className="centered-container">
+                <RegisterPage />
+              </div>
+            } />
+            <Route path="/dashboard/" element={<StudentDashboard />} />
+            <Route path="/enroll" element={<EnrollmentForm />} />  
           </Routes>
         </main>
       </div>

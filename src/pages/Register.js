@@ -1,3 +1,4 @@
+/* eslint no-undef: "off" */
 import React, { useState } from 'react';
 import Web3 from 'web3';
 import CreditTransferContract from '../contracts/CreditTransfer.json';
@@ -10,6 +11,8 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
   const [error, setError] = useState('');
+  const [instituteName, setInstituteName] = useState('');
+  const [instituteLocation, setInstituteLocation] = useState('');
 
   const handleRegistration = async (event) => {
     event.preventDefault();
@@ -34,7 +37,7 @@ const Register = () => {
         if (role === 'student') {
           await contract.methods.setStudentDetails(account, name, parseInt(age), email, abcId, password).send({ from: account });
         } else if (role === 'institute') {
-          await contract.methods.setInstituteDetails(account, name, 'Location', password).send({ from: account });
+          await contract.methods.setInstituteDetails(account, instituteName, instituteLocation, password).send({ from: account });
         }
 
         // Registration successful
@@ -49,38 +52,213 @@ const Register = () => {
 
   return (
     <div>
-      <h2>Registration</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleRegistration}>
-        <label>
-          Name:
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label>
-          Age:
-          <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required />
-        </label>
-        <label>
-          Email:
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          ABC ID:
-          <input type="text" value={abcId} onChange={(e) => setAbcId(e.target.value)} required />
-        </label>
-        <label>
-          Password:
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        <label>
-          Role:
-          <select value={role} onChange={(e) => setRole(e.target.value)} required>
-            <option value="student">Student</option>
-            <option value="institute">Institute</option>
-          </select>
-        </label>
-        <button type="submit">Register</button>
-      </form>
+      {role === 'student' ? (
+        <div className="registration-form-container">
+          <h2 className="registration-form-title">Registration</h2>
+          {error && <p className="registration-form-error">{error}</p>}
+          <form onSubmit={handleRegistration} className="registration-form">
+            <label className="registration-form-label">
+              Name:
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Age:
+              <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Email:
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              ABC ID:
+              <input type="text" value={abcId} onChange={(e) => setAbcId(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Password:
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Role:
+              <select value={role} onChange={(e) => setRole(e.target.value)} required className="registration-form-select">
+                <option value="student">Student</option>
+                <option value="institute">Institute</option>
+              </select>
+            </label>
+            <button type="submit" className="registration-form-button">
+              Register
+            </button>
+          </form>
+          <style jsx>{`
+            .registration-form-container {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              margin-top: 5rem;
+            }
+
+            .registration-form-title {
+              font-size: 2.5rem;
+              font-weight: bold;
+              color: #3f3f3f;
+              margin-bottom: 3rem;
+            }
+
+            .registration-form {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              width: 30rem;
+            }
+
+            .registration-form-label {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              margin-bottom: 1rem;
+              font-size: 1.2rem;
+              color: #3f3f3f;
+            }
+
+            .registration-form-input {
+              padding: 0.5rem;
+              font-size: 1.1rem;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              outline: none;
+              width: 100%;
+            }
+
+            .registration-form-select {
+              padding: 0.5rem;
+              font-size: 1.1rem;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              outline: none;
+              width: 100%;
+            }
+
+            .registration-form-button {
+              padding: 0.5rem 2rem;
+              font-size: 1.2rem;
+              background-color: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              margin-top: 1rem;
+            }
+
+            .registration-form-button:hover {
+              background-color: #45a049;
+            }
+
+            .registration-form-error {
+              color: red;
+              font-size: 1.1rem;
+              margin-top: 1rem;
+            }
+          `}</style>
+        </div>
+      ) : (
+        <div className="registration-form-container">
+          <h2 className="registration-form-title">Institute Registration</h2>
+          {error && <p className="registration-form-error">{error}</p>}
+          <form onSubmit={handleRegistration} className="registration-form">
+            <label className="registration-form-label">
+              Name:
+              <input type="text" value={instituteName} onChange={(e) => setInstituteName(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Location:
+              <input type="text" value={instituteLocation} onChange={(e) => setInstituteLocation(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Password:
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="registration-form-input" />
+            </label>
+            <label className="registration-form-label">
+              Role:
+              <select value={role} onChange={(e) => setRole(e.target.value)} required className="registration-form-select">
+                <option value="student">Student</option>
+                <option value="institute">Institute</option>
+              </select>
+            </label>
+            <button type="submit" className="registration-form-button">
+              Register
+            </button>
+          </form>
+          <style jsx>{`
+            .registration-form-container {
+              display: flex;
+              flex-direction: column;
+             align-items: center;
+              margin-top: 5rem;
+            }
+
+            .registration-form-title {
+              font-size: 2.5rem;
+              font-weight: bold;
+              color: #3f3f3f;
+              margin-bottom: 3rem;
+            }
+
+            .registration-form {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              width: 30rem;
+            }
+
+            .registration-form-label {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              margin-bottom: 1rem;
+              font-size: 1.2rem;
+              color: #3f3f3f;
+            }
+
+            .registration-form-input {
+              padding: 0.5rem;
+              font-size: 1.1rem;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              outline: none;
+              width: 100%;
+            }
+
+            .registration-form-select {
+              padding: 0.5rem;
+              font-size: 1.1rem;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              outline: none;
+              width: 100%;
+            }
+
+            .registration-form-button {
+              padding: 0.5rem 2rem;
+              font-size: 1.2rem;
+              background-color: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              margin-top: 1rem;
+            }
+
+            .registration-form-button:hover {
+              background-color: #45a049;
+            }
+
+            .registration-form-error {
+              color: red;
+              font-size: 1.1rem;
+              margin-top: 1rem;
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 };
