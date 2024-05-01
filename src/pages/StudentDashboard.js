@@ -13,7 +13,10 @@ const StudentDashboard = () => {
   const [selectedInstitute, setSelectedInstitute] = useState('');
   const [error, setError] = useState('');
   const [studentDetails, setStudentDetails] = useState(null);
-  const [totalCredits, setTotalCredits] = useState(0);
+  const [studentCredits, setStudentCredits] = useState(0);
+  const [isEnrolled, setIsEnrolled] = useState(false); // Track enrollment status
+  const [enrolledInstitute, setEnrolledInstitute] = useState(null); // Track enrolled institute
+
   useEffect(() => {
     const initializeBlockchain = async () => {
       try {
@@ -32,10 +35,19 @@ const StudentDashboard = () => {
 
           // Fetch list of institutes when contract and web3 are initialized
           await fetchInstitutes(contractInstance);
-          // Fetch student details
-          await fetchStudentDetails(contractInstance, studentAddress);
-          // Fetch total credits
-          await fetchTotalCredits(contractInstance, studentAddress);
+
+          // Fetch student details and credits
+          await fetchStudentDetails(studentAddress, contractInstance);
+
+          // Check if student is already enrolled
+          const enrolled = await checkEnrollmentStatus(studentAddress, contractInstance);
+          setIsEnrolled(enrolled);
+
+          // Fetch enrolled institute if student is already enrolled
+          if (enrolled) {
+            const instituteAddress = await getEnrolledInstitute(studentAddress, contractInstance);
+            setEnrolledInstitute(instituteAddress);
+          }
         } else {
           throw new Error('Web3 provider not detected');
         }
@@ -45,7 +57,7 @@ const StudentDashboard = () => {
     };
 
     initializeBlockchain();
-  }, []);
+  }, [studentAddress]);
 
   const fetchInstitutes = async (contractInstance) => {
     try {
@@ -65,36 +77,69 @@ const StudentDashboard = () => {
     }
   };
 
-  const fetchStudentDetails = async (contractInstance, studentAddress) => {
+  const fetchStudentDetails = async (studentAddress, contractInstance) => {
     try {
-      const studentData = await contractInstance.methods.students(studentAddress).call();
-      setStudentDetails(studentData);
+      if (studentAddress && contractInstance) {
+        const student = await contractInstance.methods.students(studentAddress).call();
+        const credits = await contractInstance.methods.getTotalCredits(studentAddress).call();
+        setStudentDetails(student);
+        setStudentCredits(parseInt(credits));
+      }
     } catch (error) {
       setError(`Error fetching student details: ${error.message}`);
     }
   };
 
-  const fetchTotalCredits = async (contractInstance, studentAddress) => {
+  const checkEnrollmentStatus = async (studentAddress, contractInstance) => {
     try {
-      const totalCredits = await contractInstance.methods.getTotalCredits(studentAddress).call();
-      setTotalCredits(totalCredits);
+      const instituteAddresses = await contractInstance.methods.getInstituteAddresses().call();
+
+      for (let i = 0; i < instituteAddresses.length; i++) {
+        const instituteAddress = instituteAddresses[i];
+        const enrolledStudents = await contractInstance.methods.getEnrolledStudents(instituteAddress).call();
+        if (enrolledStudents.includes(studentAddress)) {
+          return true; // Student is enrolled in at least one institute
+        }
+      }
+
+      return false; // Student is not enrolled in any institute
     } catch (error) {
-      setError(`Error fetching total credits: ${error.message}`);
+      console.error('Error checking enrollment status:', error);
+      return false;
     }
   };
 
-  const handleEnroll = async (event) => {
+  const getEnrolledInstitute = async (studentAddress, contractInstance) => {
+    try {
+      const instituteAddresses = await contractInstance.methods.getInstituteAddresses().call();
+
+      for (let i = 0; i < instituteAddresses.length; i++) {
+        const instituteAddress = instituteAddresses[i];
+        const enrolledStudents = await contractInstance.methods.getEnrolledStudents(instituteAddress).call();
+        if (enrolledStudents.includes(studentAddress)) {
+          return instituteAddress; // Return the enrolled institute address
+        }
+      }
+
+      return null; // Student is not enrolled in any institute
+    } catch (error) {
+      console.error('Error getting enrolled institute:', error);
+      return null;
+    }
+  };
+
+  const handleTransfer = async (event) => {
     event.preventDefault();
     if (!contract || !selectedInstitute) {
-      setError('Please select an institute to enroll');
+      setError('Please select an institute to transfer');
       return;
     }
 
     try {
-      await contract.methods.enrollStudent(selectedInstitute, studentAddress).send({ from: studentAddress });
-      navigate(`/studentDashboard/${studentAddress}`); // Redirect to dashboard after enrollment
+      await contract.methods.transferInstitute(selectedInstitute).send({ from: studentAddress });
+      navigate(`/studentDashboard/${studentAddress}`); // Redirect to dashboard after successful transfer
     } catch (error) {
-      setError(`Error enrolling in institute: ${error.message}`);
+      setError(`Error transferring to institute: ${error.message}`);
     }
   };
 

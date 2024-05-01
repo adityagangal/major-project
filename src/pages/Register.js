@@ -10,6 +10,7 @@ const Register = () => {
   const [abcId, setAbcId] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
+  const [location, setLocation] = useState('');
   const [error, setError] = useState('');
   const [instituteName, setInstituteName] = useState('');
   const [instituteLocation, setInstituteLocation] = useState('');
@@ -37,7 +38,7 @@ const Register = () => {
         if (role === 'student') {
           await contract.methods.setStudentDetails(account, name, parseInt(age), email, abcId, password).send({ from: account });
         } else if (role === 'institute') {
-          await contract.methods.setInstituteDetails(account, instituteName, instituteLocation, password).send({ from: account });
+          await contract.methods.setInstituteDetails(account, instituteName, location, password).send({ from: account });
         }
 
         // Registration successful
