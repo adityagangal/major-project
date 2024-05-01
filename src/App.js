@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
-import EnrollmentForm from './pages/EnrollmentForm';
 
 function App() {
   return (
