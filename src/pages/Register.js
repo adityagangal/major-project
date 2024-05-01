@@ -9,6 +9,8 @@ const Register = () => {
   const [abcId, setAbcId] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
+  const [instituteName, setInstituteName] = useState('');
+  const [location, setLocation] = useState('');
   const [error, setError] = useState('');
 
   const handleRegistration = async (event) => {
@@ -34,7 +36,7 @@ const Register = () => {
         if (role === 'student') {
           await contract.methods.setStudentDetails(account, name, parseInt(age), email, abcId, password).send({ from: account });
         } else if (role === 'institute') {
-          await contract.methods.setInstituteDetails(account, name, 'Location', password).send({ from: account });
+          await contract.methods.setInstituteDetails(account, instituteName, location, password).send({ from: account });
         }
 
         // Registration successful
@@ -79,6 +81,18 @@ const Register = () => {
             <option value="institute">Institute</option>
           </select>
         </label>
+        {role === 'institute' && (
+          <>
+            <label>
+              Institute Name:
+              <input type="text" value={instituteName} onChange={(e) => setInstituteName(e.target.value)} required />
+            </label>
+            <label>
+              Location:
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} required />
+            </label>
+          </>
+        )}
         <button type="submit">Register</button>
       </form>
     </div>

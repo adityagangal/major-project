@@ -12,6 +12,10 @@ const StudentDashboard = () => {
   const [institutes, setInstitutes] = useState([]);
   const [selectedInstitute, setSelectedInstitute] = useState('');
   const [error, setError] = useState('');
+  const [studentDetails, setStudentDetails] = useState(null);
+  const [studentCredits, setStudentCredits] = useState(0);
+  const [isEnrolled, setIsEnrolled] = useState(false); // Track enrollment status
+  const [enrolledInstitute, setEnrolledInstitute] = useState(null); // Track enrolled institute
 
   useEffect(() => {
     const initializeBlockchain = async () => {
@@ -31,6 +35,19 @@ const StudentDashboard = () => {
 
           // Fetch list of institutes when contract and web3 are initialized
           await fetchInstitutes(contractInstance);
+
+          // Fetch student details and credits
+          await fetchStudentDetails(studentAddress, contractInstance);
+
+          // Check if student is already enrolled
+          const enrolled = await checkEnrollmentStatus(studentAddress, contractInstance);
+          setIsEnrolled(enrolled);
+
+          // Fetch enrolled institute if student is already enrolled
+          if (enrolled) {
+            const instituteAddress = await getEnrolledInstitute(studentAddress, contractInstance);
+            setEnrolledInstitute(instituteAddress);
+          }
         } else {
           throw new Error('Web3 provider not detected');
         }
@@ -40,7 +57,7 @@ const StudentDashboard = () => {
     };
 
     initializeBlockchain();
-  }, []);
+  }, [studentAddress]);
 
   const fetchInstitutes = async (contractInstance) => {
     try {
@@ -60,18 +77,69 @@ const StudentDashboard = () => {
     }
   };
 
-  const handleEnroll = async (event) => {
+  const fetchStudentDetails = async (studentAddress, contractInstance) => {
+    try {
+      if (studentAddress && contractInstance) {
+        const student = await contractInstance.methods.students(studentAddress).call();
+        const credits = await contractInstance.methods.getTotalCredits(studentAddress).call();
+        setStudentDetails(student);
+        setStudentCredits(parseInt(credits));
+      }
+    } catch (error) {
+      setError(`Error fetching student details: ${error.message}`);
+    }
+  };
+
+  const checkEnrollmentStatus = async (studentAddress, contractInstance) => {
+    try {
+      const instituteAddresses = await contractInstance.methods.getInstituteAddresses().call();
+
+      for (let i = 0; i < instituteAddresses.length; i++) {
+        const instituteAddress = instituteAddresses[i];
+        const enrolledStudents = await contractInstance.methods.getEnrolledStudents(instituteAddress).call();
+        if (enrolledStudents.includes(studentAddress)) {
+          return true; // Student is enrolled in at least one institute
+        }
+      }
+
+      return false; // Student is not enrolled in any institute
+    } catch (error) {
+      console.error('Error checking enrollment status:', error);
+      return false;
+    }
+  };
+
+  const getEnrolledInstitute = async (studentAddress, contractInstance) => {
+    try {
+      const instituteAddresses = await contractInstance.methods.getInstituteAddresses().call();
+
+      for (let i = 0; i < instituteAddresses.length; i++) {
+        const instituteAddress = instituteAddresses[i];
+        const enrolledStudents = await contractInstance.methods.getEnrolledStudents(instituteAddress).call();
+        if (enrolledStudents.includes(studentAddress)) {
+          return instituteAddress; // Return the enrolled institute address
+        }
+      }
+
+      return null; // Student is not enrolled in any institute
+    } catch (error) {
+      console.error('Error getting enrolled institute:', error);
+      return null;
+    }
+  };
+
+  const handleTransfer = async (event) => {
     event.preventDefault();
     if (!contract || !selectedInstitute) {
-      setError('Please select an institute to enroll');
+      setError('Please select an institute to transfer');
       return;
     }
 
     try {
-      await contract.methods.enrollStudent(selectedInstitute, studentAddress).send({ from: studentAddress });
-      navigate(`/studentDashboard/${studentAddress}`); // Redirect to dashboard after enrollment
+      await contract.methods.transferInstitute(selectedInstitute).send({ from: studentAddress });
+      navigate(`/studentDashboard/${studentAddress}`); // Redirect to dashboard after successful transfer
     } catch (error) {
-      setError(`Error enrolling in institute: ${error.message}`);
+      setError(`Error transferring to institute: ${error.message}`);
     }
   };
 
@@ -82,20 +150,38 @@ const StudentDashboard = () => {
   return (
     <div>
       <h2>Student Dashboard</h2>
-      <form onSubmit={handleEnroll}>
-        <label>
-          Select Institute:
-          <select value={selectedInstitute} onChange={(e) => setSelectedInstitute(e.target.value)}>
-            <option value="">Select an institute</option>
-            {institutes.map((institute) => (
-              <option key={institute.address} value={institute.address}>
-                {institute.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit">Enroll</button>
-      </form>
+      {studentDetails && (
+        <div>
+          <p>Student Name: {studentDetails.name}</p>
+          <p>Email: {studentDetails.email}</p>
+          <p>ABC ID: {studentDetails.abcId}</p>
+        </div>
+      )}
+      <p>Total Credits: {studentCredits}</p>
+      {isEnrolled && (
+        <div>
+          <p>Enrolled Institute: {enrolledInstitute}</p>
+          <p>
+            <strong>You are already enrolled in an institute.</strong>
+          </p>
+        </div>
+      )}
+      {!isEnrolled && (
+        <form onSubmit={handleTransfer}>
+          <label>
+            Select Institute to Transfer:
+            <select value={selectedInstitute} onChange={(e) => setSelectedInstitute(e.target.value)}>
+              <option value="">Select an institute</option>
+              {institutes.map((institute) => (
+                <option key={institute.address} value={institute.address}>
+                  {institute.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit">Transfer</button>
+        </form>
+      )}
     </div>
   );
 };
