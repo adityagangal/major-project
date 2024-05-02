@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
+import InstituteDashboard from './pages/InstituteDashboard';
 
 function App() {
   return (
@@ -21,8 +22,8 @@ function App() {
                 <RegisterPage />
               </div>
             } />
-            <Route path="/dashboard/" element={<StudentDashboard />} />
-            <Route path="/enroll" element={<EnrollmentForm />} />  
+            <Route path="/studentDashboard/:studentAddress" element={<StudentDashboard />} />
+            <Route path="/instituteDashboard/:instituteAddress" element={<InstituteDashboard />} />
           </Routes>
         </main>
       </div>
