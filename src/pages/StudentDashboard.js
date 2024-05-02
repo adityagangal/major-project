@@ -75,10 +75,7 @@ const StudentDashboard = () => {
 
   const handleEnrollInstitute = async () => {
     try {
-      if (studentCredits <= 0) {
-        setError('Insufficient credits to enroll in an institute');
-        return;
-      }
+
 
       const web3 = new Web3(window.ethereum);
       const networkId = await web3.eth.net.getId();

@@ -5,6 +5,7 @@ import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
 import InstituteDashboard from './pages/InstituteDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             } />
             <Route path="/studentDashboard/:studentAddress" element={<StudentDashboard />} />
             <Route path="/instituteDashboard/:instituteAddress" element={<InstituteDashboard />} />
+            <Route path='/admin' element={<AdminDashboard />} />
           </Routes>
         </main>
       </div>
