@@ -7,6 +7,7 @@ const AdminDashboard = () => {
   const [contract, setContract] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedInstitute, setSelectedInstitute] = useState('');
   const [selectedSemester, setSelectedSemester] = useState(1);
   const [markSheet, setMarkSheet] = useState(null);
   const [creditsGiven, setCreditsGiven] = useState(false);
@@ -35,7 +36,7 @@ const AdminDashboard = () => {
           setWeb3(web3);
           setContract(contract);
 
-          const studentAddresses = await contract.methods.getInstituteAddresses().call();
+          const studentAddresses = await contract.methods.getStudentAddresses().call();
           setStudents(studentAddresses);
         } else {
           throw new Error('MetaMask is not installed');
@@ -50,9 +51,9 @@ const AdminDashboard = () => {
 
   const fetchMarkSheet = async () => {
     try {
-      const markSheetData = await contract.methods.getMarksheet(selectedSemester).call({ from: selectedStudent });
+      const markSheetData = await contract.methods.getMarksheet(selectedSemester).call({ from: selectedInstitute });
       setMarkSheet(markSheetData);
-
+      setSelectedStudent(markSheetData[1]);
       const creditsGivenForMarkSheet = await contract.methods.creditsGivenForMarksheet(selectedSemester).call();
       setCreditsGiven(creditsGivenForMarkSheet);
     } catch (error) {
